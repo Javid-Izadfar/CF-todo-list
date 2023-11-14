@@ -1,40 +1,66 @@
 <template>
   <div>
-    <JList title="Backlog" @goNext="goToDoing" :items="backlogItems"/>
-    <JList title="Doing" @goNext="goToDone" :items="doingItems"/>
-    <JList title="Done" :items="doneItems"/>
+    <JList 
+      v-for="list in board"
+      :key="list.state"
+      :title="list.title"
+      :items="list.items"
+      @goNext="goToNextState"
+    />
   </div>
 </template>
 
 <script setup>
   import JList from '@/components/JList.vue'
+  import { BOARD_LISTS } from '@/scripts/board.js'
 
   import { computed, ref } from 'vue'
   import { nanoid } from 'nanoid'
+  import { groupBy } from 'lodash'
 
   const list = ref([
     {
       id: nanoid(),
+      title: 'Who knows what?',
+      desc: '',
+      state: 'backlog'
+    },
+    {
+      id: nanoid(),
+      title: 'Make it pretty',
+      desc: '',
+      state: 'backlog'
+    },
+    {
+      id: nanoid(),
+      title: 'Make a better one',
+      desc: 'A simple list should be fine!',
+      state: 'doing'
+    },
+    {
+      id: nanoid(),
       title: 'Make a todo list',
       desc: 'A simple list should be fine!',
-      state: 'backlog'
-    }
+      state: 'done'
+    },
   ])
 
-  const backlogItems = computed(() => list.value.filter(item => item.state === 'backlog'))
-  const doingItems = computed(() => list.value.filter(item => item.state === 'doing'))
-  const doneItems = computed(() => list.value.filter(item => item.state === 'done'))
+  const board = computed(() => {
+    const lists = groupBy(list.value, 'state')
+    return BOARD_LISTS.map((item) => ({
+      ...item,
+      items: lists[item.state]
+    }))
+  })
 
-  const goToDoing = (id) => {
-    const index = list.value.findIndex(item => item.id === id)
+  const goToNextState = (id) => {
+    const taskIndex = list.value.findIndex(item => item.id === id)
+    const listIndex = BOARD_LISTS.findIndex(l => l.state === list.value[taskIndex]?.state)
     
-    list.value[index].state = 'doing'
-  }
-
-  const goToDone = (id) => {
-    const index = list.value.findIndex(item => item.id === id)
-    
-    list.value[index].state = 'done'
+    if (listIndex > -1) {
+      const nextState = BOARD_LISTS[listIndex + 1].state
+      list.value[taskIndex].state = nextState
+    }
   }
 
 </script>

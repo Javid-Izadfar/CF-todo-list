@@ -11,21 +11,25 @@
         <slot>
             <p>No Description</p>
         </slot>
-        <div v-if="state !== 'done'">
+        <div v-if="showNextBtn">
             <button @click="moveToNext">Move to next</button>
         </div>
     </li>
 </template>
 
 <script setup>
-    import { defineProps, defineEmits } from 'vue';
-    import { string } from 'vue-types'
+    import { defineProps, defineEmits, computed } from 'vue';
+    import { string } from 'vue-types';
+
+    import { BOARD_LISTS } from '@/scripts/board.js'
     
     const props = defineProps({
         title: string(),
         state: string()
     })
     const emits = defineEmits(['move'])
+
+    const showNextBtn = computed(() => props.state !== BOARD_LISTS[BOARD_LISTS.length - 1].state)
 
     const moveToNext = () => {
         emits('move')
